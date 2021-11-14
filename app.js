@@ -5,6 +5,15 @@ const express = require('express');
 // Creating express object
 const app = express();
 
+// Configurar cabeceras y cors
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+    next();
+});
+
 // Handling GET request
 app.get('/', (req, res) => {
     res.send('Mariana '
@@ -13,11 +22,15 @@ app.get('/', (req, res) => {
 })
 
 // Método para obtener lista de ciudades.
+// Se deja fija la cantidad de ciudades debido a que el json de openweathermap contiene millones de registros.
 app.get('/getcities', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+
     res.json({
-        cities: [{ id: 1, description: 'Buenos Aires' },
-        { id: 2, description: 'Cordoba' },
-        { id: 3, description: 'Rosario' }]
+        cities: [{ id: 3435907, description: 'Buenos Aires' },
+        { id: 3844419, description: 'Mendoza' },
+        { id: 3433955, description: 'Ciudad Autonoma de Buenos Aires' },
+        { id: 3838583, description: 'Rosario' }]
     })
     res.end()
 })
@@ -26,7 +39,7 @@ app.get('/getcities', (req, res) => {
 app.get('/getweather/:city/:history', (req, res) => {
     let city = req.params.city;
     let history = req.params.history;
-
+    console.log(city + " - " + history)
     switch (city) {
         case '1':
             res.json({
