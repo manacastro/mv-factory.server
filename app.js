@@ -1,9 +1,9 @@
 
-// Requiring module
 const express = require('express');
-
-// Creating express object
 const app = express();
+const cnx = require('./cnx');
+const weatherApi = require('./weatherApi');
+const sql = require('mssql');
 
 // Configurar cabeceras y cors
 app.use((req, res, next) => {
@@ -16,14 +16,32 @@ app.use((req, res, next) => {
 
 // Handling GET request
 app.get('/', (req, res) => {
-    res.send('Mariana '
-        + 'running on this server')
+    res.send('Mariana running on this server')
     res.end()
 })
+
 
 // Método para obtener lista de ciudades.
 // Se deja fija la cantidad de ciudades debido a que el json de openweathermap contiene millones de registros.
 app.get('/getcities', (req, res) => {
+
+    // const sql = require('mssql')
+
+    // sql.on('error', err => {
+    //     console.log(err);
+    // })
+    
+    // sql.connect(cnx).then(pool => {
+    //     // Query
+        
+    //     return pool.request()
+    //         .query('select * from Cities')
+    // }).then(result => {
+    //     console.dir(result)
+    // }).catch(err => {
+    //   console.log(err);
+    // });
+
     res.set('Access-Control-Allow-Origin', '*');
 
     res.json({
@@ -39,96 +57,23 @@ app.get('/getcities', (req, res) => {
 app.get('/getweather/:city/:history', (req, res) => {
     let city = req.params.city;
     let history = req.params.history;
-    console.log(city + " - " + history)
-    switch (city) {
-        case '1':
-            res.json({
-                timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                city: { id: 1, description: 'Buenos Aires' },
-                temperature: 56,
-                fellsLike: 45,
-                history: [{
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }, {
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }, {
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }]
-            });
-            res.end();
 
-            break;
-        case '2':
-            res.json({
-                timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                city: { id: 2, description: 'Cordoba' },
-                temperature: 34,
-                fellsLike: 87,
-                history: [{
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }, {
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }, {
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }]
-            });
-            res.end();
-            break;
-        case '3':
-            res.json({
-                timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                city: { id: 3, description: 'Rosario' },
-                temperature: 4,
-                fellsLike: 8,
-                history: [{
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }, {
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }, {
-                    timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                    city: { id: 1, description: 'Buenos Aires', country:'Argentina' },
-                    temperature: 56,
-                    fellsLike: 45
-                }]
-            });
-            res.end();
-            break;
+    let url = weatherApi.rootUrl + "weather?id=" +  city + "&appid=" + weatherApi.apiKey +"&units="+ weatherApi.units;
+    const fetch = require("node-fetch");
 
-        default:
-            res.json({
-                timestamp: 'sábado, 13 de noviembre de 2021 21:28:20 GMT-03:00',
-                city: { id: -1, description: 'None' },
-                temperature: -1,
-                fellsLike: -1,
-                historySaved: false
+    fetch(url)
+        .then((response) => response.json())
+        .then(function(data){res.json({
+                timestamp: data.dt,
+                city: { id: data.id, description: data.name },
+                temperature: data.main.temp,
+                fellsLike: data.main.feels_like,
+                history: []
             });
             res.end();
-            break;
-    }
+        })
+        .catch((err) => console.log(err));
+
 })
 
 // Port Number
